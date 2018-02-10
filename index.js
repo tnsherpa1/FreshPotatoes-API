@@ -131,6 +131,9 @@ function getFilmRecommendations(req, res) {
               films[i].reviews = REVIEWS[i].reviews;
             }
           }
+          //filter for films with less than 5 reviews
+          films.filter(fm => (fm.reviews.length) >= 5 );
+
           const SEND_THIS = [];
           //Add content to SEND_THIS
           films.forEach((data)=>{
