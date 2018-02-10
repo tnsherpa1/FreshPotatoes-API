@@ -113,7 +113,23 @@ function getFilmRecommendations(req, res) {
         where: { genre_id: film.genre_id }
       }).then((films) => {
         res.json(films);
+
+        let get_id = films.map((fid) => {
+          return fid.id;
+        });
+        let film_id = get_id.toString();
+        console.log(film_id)
+        //Make 3rd party API Request
+        const API_GET = {
+          uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=`+film_id,
+          json: true
+        }
+        request.get(API_GET, function(error, response, body) {
+          console.log(response.body)
+        })
       });
+
+
     } else {
       res.status(422).json({message: 'key missing'});
     }
