@@ -59,7 +59,7 @@ sequelize
     type: Sequelize.STRING
   },
   genre_id: {
-    type: Sequelize.STRING
+    type: Sequelize.INTEGER
   }
 });
 //Artist schema
@@ -88,12 +88,8 @@ const Artist = sequelize.define('artists', {
   }
 );
 
-  //Check by get
-  app.get('/', function(req,res) {
-    Film.findAll({}).then((results) => {
-      res.json(results.length);
-    });
-  });
+//Setup association
+Film.belongsTo(Genre, {foreignKey: 'genre_id'});
 
 
 
@@ -107,9 +103,22 @@ Promise.resolve()
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
 
+
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
-  res.status(500).send('Not Implemented');
+  let parent_id = req.params.id;
+  Film.findById(parent_id).then((film)=>{
+    if (film) {
+      console.log(film);
+    } else {
+      res.status(422).json({message: 'key missing'});
+    }
+  });
 }
+
+//404 HANDLER
+app.use((req,res,next) => {
+  res.status(404).json({message: 'key missing'});
+});
 
 module.exports = app;
