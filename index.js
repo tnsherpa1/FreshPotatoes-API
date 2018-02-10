@@ -91,10 +91,6 @@ const Artist = sequelize.define('artists', {
 //Setup association
 Film.belongsTo(Genre, {foreignKey: 'genre_id'});
 
-
-
-
-
 // START SERVER
 Promise.resolve()
   .then(() => app.listen(PORT, () => console.log(`App listening on port ${PORT}`)))
@@ -103,16 +99,16 @@ Promise.resolve()
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
 
-
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
   let parent_id = req.params.id;
   Film.findById(parent_id).then((film)=>{
     if (film) {
       Film.findAll({
-        where: { genre_id: film.genre_id }
+        where: { genre_id: film.genre_id },
+        include: Genre
       }).then((films) => {
-
+        order: [{ model: Film }, 'id'];
         let get_id = films.map((fid) => {
           return fid.id;
         });
@@ -131,18 +127,31 @@ function getFilmRecommendations(req, res) {
               films[i].reviews = REVIEWS[i].reviews;
             }
           }
+          //calculate avg rating
+          const GETAVG = ((revs) => {
+            let avgRev = 0;
+            revs.forEach((star) => {
+                avgRev += star.rating
+            });
+            avgRev = (avgRev/revs.length).toFixed(2);
+            return avgRev;
+          });
           //filter for films with less than 5 reviews
-          films.filter(fm => (fm.reviews.length) >= 5 );
+          films = films.filter(fm => (fm.reviews.length) >= 5 );
+
+          //filter for films with average rating of 4
+          films = films.filter(fm => GETAVG(fm.reviews) > 4 );
 
           const SEND_THIS = [];
           //Add content to SEND_THIS
+          console.log(films[2]);
           films.forEach((data)=>{
             SEND_THIS.push({
               id: data.id,
               title: data.title,
               releaseDate: data.release_date,
-              genre: data.genre,
-              averageRating: 5, // TODO: calculate avg rating
+              genre: data.genre.name,
+              averageRating: GETAVG(data.reviews),
               reviews: data.reviews.length
             })
           })
