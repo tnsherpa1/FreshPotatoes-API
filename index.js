@@ -143,8 +143,18 @@ function getFilmRecommendations(req, res) {
               reviews: data.reviews.length
             })
           })
-
-          res.status(200).json(SEND_THIS);
+          //can limit and offset results
+          let limit = 10;
+          let offset = 0;
+          if (req.query.limit || req.query.offset) {
+            if (req.query.limit) {
+              limit = parseInt(req.query.limit);
+            }
+            if (req.query.offset) {
+              offset = parseInt(req.query.offset);
+            }
+          }
+          res.status(200).json({recommendations: SEND_THIS.slice(offset, offset+limit), meta: { limit:limit, offset:offset }});
         })
       });
 
