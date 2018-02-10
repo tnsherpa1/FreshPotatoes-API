@@ -109,7 +109,11 @@ function getFilmRecommendations(req, res) {
   let parent_id = req.params.id;
   Film.findById(parent_id).then((film)=>{
     if (film) {
-      console.log(film);
+      Film.findAll({
+        where: { genre_id: film.genre_id }
+      }).then((films) => {
+        res.json(films);
+      });
     } else {
       res.status(422).json({message: 'key missing'});
     }
