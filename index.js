@@ -112,20 +112,39 @@ function getFilmRecommendations(req, res) {
       Film.findAll({
         where: { genre_id: film.genre_id }
       }).then((films) => {
-        res.json(films);
 
         let get_id = films.map((fid) => {
           return fid.id;
         });
         let film_id = get_id.toString();
-        console.log(film_id)
+
         //Make 3rd party API Request
         const API_GET = {
           uri: `http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=`+film_id,
           json: true
         }
         request.get(API_GET, function(error, response, body) {
-          console.log(response.body)
+          const REVIEWS = response.body;
+          //add reviews to films
+          for ( let i=0; i<films.length; i++) {
+            if (films[i].id == REVIEWS[i].film_id) {
+              films[i].reviews = REVIEWS[i].reviews;
+            }
+          }
+          const SEND_THIS = [];
+          //Add content to SEND_THIS
+          films.forEach((data)=>{
+            SEND_THIS.push({
+              id: data.id,
+              title: data.title,
+              releaseDate: data.release_date,
+              genre: data.genre,
+              averageRating: 5, // TODO: calculate avg rating
+              reviews: data.reviews.length
+            })
+          })
+
+          res.status(200).json(SEND_THIS);
         })
       });
 
